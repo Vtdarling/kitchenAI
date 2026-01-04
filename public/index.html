@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gourmet AI Chef</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Markdown Parser -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        dark: {
+                            900: '#111827', // Very Dark Blue/Gray
+                            800: '#1f2937', // Dark Gray
+                            700: '#374151',
+                        },
+                        gold: {
+                            400: '#fbbf24',
+                            500: '#f59e0b',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* --- DARK MODE TYPOGRAPHY --- */
+        .prose h1, .prose h2, .prose h3 {
+            font-family: 'Playfair Display', serif;
+            color: #fbbf24;
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            font-weight: 700;
+        }
+        .prose h1 { font-size: 2.5rem; }
+        .prose h2 { 
+            font-size: 2.2rem; 
+            border-bottom: 3px solid #f59e0b; 
+            padding-bottom: 0.5rem; 
+            display: inline-block;
+        }
+
+        /* --- DARK TABLE STYLE --- */
+        .prose table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            margin-bottom: 2rem;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            border: 1px solid #374151;
+            font-size: 1.25rem;
+        }
+        .prose thead tr { background: #f59e0b; color: #111827; }
+        .prose th { padding: 1.2rem; text-align: left; font-weight: 800; text-transform: uppercase; }
+        .prose td { padding: 1.2rem; border-bottom: 1px solid #374151; background-color: #1f2937; color: #f3f4f6; }
+        .prose tr:hover td { background-color: #374151; color: #fbbf24; }
+
+        /* --- BIG LISTS --- */
+        .prose ol { list-style: none; counter-reset: recipe-step; padding: 0; font-size: 1.35rem; }
+        .prose ol li { position: relative; padding-left: 4rem; margin-bottom: 2rem; color: #e5e7eb; line-height: 1.6; }
+        .prose ol li::before {
+            content: counter(recipe-step);
+            counter-increment: recipe-step;
+            position: absolute;
+            left: 0; top: 0;
+            width: 3rem; height: 3rem;
+            background: #f59e0b; color: #111827;
+            border-radius: 50%;
+            text-align: center; line-height: 3rem;
+            font-weight: 800; font-family: 'Outfit', sans-serif;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
+        }
+        .prose strong { color: #fbbf24; font-weight: 700; }
+
+        /* UI Animations */
+        .fade-in { animation: fadeIn 0.8s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .cooking-bounce { animation: cookingBounce 0.6s infinite alternate; }
+        @keyframes cookingBounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
+
+        /* --- DANCE ANIMATION --- */
+        .dance-floor {
+            perspective: 1000px;
+        }
+        .dancer {
+            animation: dance 0.6s infinite alternate ease-in-out;
+            transform-origin: bottom center;
+            display: inline-block;
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+        }
+        @keyframes dance {
+            0% { transform: translateY(0) rotate(-10deg) scale(1); }
+            100% { transform: translateY(-15px) rotate(10deg) scale(1.1); }
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen text-gray-800">
+
+    <!-- Navbar -->
+    <nav class="bg-dark-900 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3 text-gold-400">
+                <i class="fa-solid fa-fire-burner text-3xl"></i>
+                <span class="font-serif text-3xl font-bold tracking-tight text-white">Gourmet<span class="text-gold-400">AI</span></span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <div class="relative bg-white overflow-hidden">
+        <div class="relative container mx-auto px-6 py-16 text-center">
+            
+            <h1 class="font-serif text-5xl md:text-6xl font-bold text-dark-900 mb-4 leading-tight">
+                What's cooking today?
+            </h1>
+            <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
+                Simple words. Big flavor. Magic recipes.
+            </p>
+
+            <!-- Search Bar -->
+            <div class="max-w-2xl mx-auto relative group z-20">
+                <input type="text" id="dishInput" 
+                    class="block w-full pl-8 pr-32 py-5 rounded-full border-4 border-dark-900 bg-white shadow-xl text-xl font-semibold focus:outline-none focus:border-gold-500 transition-all placeholder-gray-400"
+                    placeholder="e.g. Pasta, Burger, Juice...">
+                
+                <button onclick="getRecipe()" 
+                    class="absolute right-2 top-2 bottom-2 bg-dark-900 hover:bg-gold-500 hover:text-dark-900 text-white font-bold text-lg rounded-full px-8 transition-all duration-300 shadow-md">
+                    Cook
+                </button>
+            </div>
+
+            <!-- DANCING ANIMATION -->
+            <div class="dance-floor mt-16 flex flex-wrap justify-center items-end gap-3 md:gap-6 h-24">
+                <!-- Apple (New) -->
+                <i class="fa-solid fa-apple-whole text-5xl text-red-500 dancer" style="animation-delay: 0s"></i>
+
+                <!-- Carrot -->
+                <i class="fa-solid fa-carrot text-5xl text-orange-500 dancer" style="animation-delay: 0.1s"></i>
+                
+                <!-- Lemon (New) -->
+                <i class="fa-solid fa-lemon text-5xl text-yellow-400 dancer" style="animation-delay: 0.2s"></i>
+
+                <!-- Pepper -->
+                <i class="fa-solid fa-pepper-hot text-5xl text-red-600 dancer" style="animation-delay: 0.3s"></i>
+
+                <!-- The Chief (Changed Face to 'Starry Grin') -->
+                <div class="relative dancer z-10" style="animation-delay: 0.4s">
+                    <!-- Changed from fa-robot to fa-face-grin-stars for a happier, 'star chef' look -->
+                    <i class="fa-solid fa-face-grin-stars text-7xl text-dark-900 bg-white rounded-full"></i>
+                    <i class="fa-solid fa-hat-chef text-4xl text-gold-500 absolute -top-6 -right-2 transform rotate-12 drop-shadow-md"></i>
+                </div>
+                
+                <!-- Leaf -->
+                <i class="fa-solid fa-leaf text-5xl text-green-500 dancer" style="animation-delay: 0.5s"></i>
+
+                <!-- Seedling (New) -->
+                <i class="fa-solid fa-seedling text-5xl text-green-600 dancer" style="animation-delay: 0.6s"></i>
+                
+                <!-- Chicken (Drumstick) -->
+                <i class="fa-solid fa-drumstick-bite text-5xl text-yellow-700 dancer" style="animation-delay: 0.7s"></i>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-12 max-w-5xl">
+        
+        <!-- Loading State -->
+        <div id="loader" class="hidden flex-col items-center justify-center py-16">
+            <div class="flex items-end gap-6 mb-8">
+                <i class="fa-solid fa-carrot text-5xl text-orange-500 cooking-bounce" style="animation-delay: 0s"></i>
+                <i class="fa-solid fa-pizza-slice text-5xl text-red-600 cooking-bounce" style="animation-delay: 0.1s"></i>
+                <i class="fa-solid fa-burger text-5xl text-yellow-500 cooking-bounce" style="animation-delay: 0.2s"></i>
+            </div>
+            <p id="loading-text" class="text-3xl font-serif text-dark-800 font-bold animate-pulse">Starting...</p>
+        </div>
+
+        <!-- DARK MODE Result Card -->
+        <div id="resultContainer" class="hidden fade-in">
+            <div class="bg-dark-900 rounded-3xl shadow-2xl overflow-hidden border-4 border-gold-500">
+                
+                <!-- Card Header -->
+                <div class="bg-dark-800 p-8 border-b border-gray-700 relative overflow-hidden">
+                    <div class="relative z-10">
+                        <span id="categoryBadge" class="inline-block bg-gold-500 text-dark-900 px-4 py-2 rounded-lg text-sm font-extrabold uppercase tracking-widest mb-4 shadow-lg">
+                            Category
+                        </span>
+                        <h2 id="dishTitle" class="font-serif text-5xl font-bold text-white mb-2">Dish Name</h2>
+                    </div>
+                </div>
+
+                <!-- Card Body (Dark Background, Large Text) -->
+                <div class="p-8 md:p-12 bg-dark-900">
+                    <div id="recipeContent" class="prose max-w-none">
+                        <!-- Content injected here -->
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let loadingInterval;
+
+        function startLoadingAnimation() {
+            const messages = [
+                "Thinking simply...",
+                "Picking ingredients...",
+                "Heating the pan...",
+                "Almost ready...",
+            ];
+            const textElement = document.getElementById('loading-text');
+            let index = 0;
+            
+            textElement.textContent = "Chef is thinking..."; 
+            
+            loadingInterval = setInterval(() => {
+                textElement.textContent = messages[index];
+                index = (index + 1) % messages.length;
+            }, 1500);
+        }
+
+        function stopLoadingAnimation() {
+            clearInterval(loadingInterval);
+        }
+
+        async function getRecipe() {
+            const dishInput = document.getElementById('dishInput');
+            const dish = dishInput.value.trim();
+            const loader = document.getElementById('loader');
+            const resultContainer = document.getElementById('resultContainer');
+            
+            if (!dish) return;
+
+            loader.classList.remove('hidden');
+            loader.classList.add('flex');
+            resultContainer.classList.add('hidden');
+            dishInput.blur();
+            
+            startLoadingAnimation();
+
+            try {
+                const response = await fetch('/api/get-recipe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dish })
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    renderRecipe(dish, data.category, data.recipe);
+                } else {
+                    alert("Error: " + data.error);
+                }
+
+            } catch (error) {
+                console.error(error);
+                alert("Connection Error");
+            } finally {
+                stopLoadingAnimation();
+                loader.classList.add('hidden');
+                loader.classList.remove('flex');
+            }
+        }
+
+        function renderRecipe(title, category, markdownText) {
+            const container = document.getElementById('resultContainer');
+            const titleEl = document.getElementById('dishTitle');
+            const badgeEl = document.getElementById('categoryBadge');
+            const contentEl = document.getElementById('recipeContent');
+
+            titleEl.textContent = title;
+            badgeEl.textContent = category;
+            contentEl.innerHTML = marked.parse(markdownText);
+
+            container.classList.remove('hidden');
+            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        
+        document.getElementById('dishInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') getRecipe();
+        });
+    </script>
+</body>
+</html>
