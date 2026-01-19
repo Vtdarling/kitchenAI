@@ -3,307 +3,335 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gourmet AI Chef</title>
-    
-    <!-- Tailwind CSS -->
+    <title>Gourmet AI Chef - Secure</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    <!-- Markdown Parser -->
+    <!-- SECURITY: DOMPurify for XSS Protection -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-    <!-- Google Fonts -->
+    
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
-
     <script>
         tailwind.config = {
             theme: {
                 extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        serif: ['Playfair Display', 'serif'],
-                    },
-                    colors: {
-                        dark: {
-                            900: '#111827', // Very Dark Blue/Gray
-                            800: '#1f2937', // Dark Gray
-                            700: '#374151',
-                        },
-                        gold: {
-                            400: '#fbbf24',
-                            500: '#f59e0b',
-                        }
-                    }
+                    fontFamily: { sans: ['Outfit', 'sans-serif'], serif: ['Playfair Display', 'serif'] },
+                    colors: { dark: { 900: '#111827', 800: '#1f2937', 700: '#374151' }, gold: { 400: '#fbbf24', 500: '#f59e0b' } }
                 }
             }
         }
     </script>
-
     <style>
-        /* --- DARK MODE TYPOGRAPHY --- */
-        .prose h1, .prose h2, .prose h3 {
-            font-family: 'Playfair Display', serif;
-            color: #fbbf24;
-            margin-top: 1.5em;
-            margin-bottom: 0.8em;
-            font-weight: 700;
-        }
+        .prose h1, .prose h2, .prose h3 { font-family: 'Playfair Display', serif; color: #fbbf24; margin-top: 1.5em; margin-bottom: 0.8em; font-weight: 700; }
         .prose h1 { font-size: 2.5rem; }
-        .prose h2 { 
-            font-size: 2.2rem; 
-            border-bottom: 3px solid #f59e0b; 
-            padding-bottom: 0.5rem; 
-            display: inline-block;
-        }
-
-        /* --- DARK TABLE STYLE --- */
-        .prose table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin-bottom: 2rem;
-            border-radius: 12px;
-            overflow: hidden;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
-            border: 1px solid #374151;
-            font-size: 1.25rem;
-        }
+        .prose h2 { font-size: 2.2rem; border-bottom: 3px solid #f59e0b; padding-bottom: 0.5rem; display: inline-block; }
+        .prose table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 2rem; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); border: 1px solid #374151; font-size: 1.15rem; }
         .prose thead tr { background: #f59e0b; color: #111827; }
-        .prose th { padding: 1.2rem; text-align: left; font-weight: 800; text-transform: uppercase; }
-        .prose td { padding: 1.2rem; border-bottom: 1px solid #374151; background-color: #1f2937; color: #f3f4f6; }
-        .prose tr:hover td { background-color: #374151; color: #fbbf24; }
-
-        /* --- BIG LISTS --- */
-        .prose ol { list-style: none; counter-reset: recipe-step; padding: 0; font-size: 1.35rem; }
-        .prose ol li { position: relative; padding-left: 4rem; margin-bottom: 2rem; color: #e5e7eb; line-height: 1.6; }
-        .prose ol li::before {
-            content: counter(recipe-step);
-            counter-increment: recipe-step;
-            position: absolute;
-            left: 0; top: 0;
-            width: 3rem; height: 3rem;
-            background: #f59e0b; color: #111827;
-            border-radius: 50%;
-            text-align: center; line-height: 3rem;
-            font-weight: 800; font-family: 'Outfit', sans-serif;
-            box-shadow: 0 0 10px rgba(245, 158, 11, 0.5);
-        }
-        .prose strong { color: #fbbf24; font-weight: 700; }
-
-        /* UI Animations */
+        .prose th { padding: 1rem; text-align: left; font-weight: 800; text-transform: uppercase; }
+        .prose td { padding: 1rem; border-bottom: 1px solid #374151; background-color: #1f2937; color: #f3f4f6; }
+        .prose ol { list-style: none; counter-reset: recipe-step; padding: 0; font-size: 1.25rem; }
+        .prose ol li { position: relative; padding-left: 3.5rem; margin-bottom: 1.5rem; color: #e5e7eb; line-height: 1.6; }
+        .prose ol li::before { content: counter(recipe-step); counter-increment: recipe-step; position: absolute; left: 0; top: 0; width: 2.5rem; height: 2.5rem; background: #f59e0b; color: #111827; border-radius: 50%; text-align: center; line-height: 2.5rem; font-weight: 800; }
+        .prose strong { color: #fbbf24; }
         .fade-in { animation: fadeIn 0.8s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        
-        .cooking-bounce { animation: cookingBounce 0.6s infinite alternate; }
-        @keyframes cookingBounce { from { transform: translateY(0); } to { transform: translateY(-15px); } }
-
-        /* --- DANCE ANIMATION --- */
-        .dance-floor {
-            perspective: 1000px;
-        }
-        .dancer {
-            animation: dance 0.6s infinite alternate ease-in-out;
-            transform-origin: bottom center;
-            display: inline-block;
-            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
-        }
-        @keyframes dance {
-            0% { transform: translateY(0) rotate(-10deg) scale(1); }
-            100% { transform: translateY(-15px) rotate(10deg) scale(1.1); }
-        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #1f2937; }
+        ::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 4px; }
     </style>
 </head>
-<body class="bg-gray-100 min-h-screen text-gray-800">
+<body class="bg-gray-100 min-h-screen text-gray-800 flex flex-col h-screen overflow-hidden">
 
-    <!-- Navbar -->
-    <nav class="bg-dark-900 shadow-lg sticky top-0 z-50">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center gap-3 text-gold-400">
-                <i class="fa-solid fa-fire-burner text-3xl"></i>
-                <span class="font-serif text-3xl font-bold tracking-tight text-white">Gourmet<span class="text-gold-400">AI</span></span>
+    <!-- LOGIN MODAL -->
+    <div id="loginModal" class="fixed inset-0 z-[100] bg-dark-900 flex items-center justify-center p-4">
+        <div class="bg-white rounded-3xl p-8 md:p-12 max-w-lg w-full shadow-2xl relative overflow-hidden text-center">
+            <div class="absolute -top-10 -right-10 w-40 h-40 bg-gold-400 rounded-full opacity-20"></div>
+            <div class="mb-8">
+                <img src="./logo.png" alt="Gourmet AI Logo" class="h-24 w-auto mx-auto mb-4 rounded-xl shadow-md">
+                <h2 class="text-4xl font-serif font-bold text-dark-900">Chef's Table</h2>
+                <p class="text-gray-500 mt-2 text-lg">Login securely to save your recipes.</p>
             </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <div class="relative bg-white overflow-hidden">
-        <div class="relative container mx-auto px-6 py-16 text-center">
-            
-            <h1 class="font-serif text-5xl md:text-6xl font-bold text-dark-900 mb-4 leading-tight">
-                What's cooking today?
-            </h1>
-            <p class="text-xl text-gray-600 mb-10 max-w-2xl mx-auto">
-                Simple words. Big flavor. Magic recipes.
-            </p>
-
-            <!-- Search Bar -->
-            <div class="max-w-2xl mx-auto relative group z-20">
-                <input type="text" id="dishInput" 
-                    class="block w-full pl-8 pr-32 py-5 rounded-full border-4 border-dark-900 bg-white shadow-xl text-xl font-semibold focus:outline-none focus:border-gold-500 transition-all placeholder-gray-400"
-                    placeholder="e.g. Pasta, Burger, Juice...">
-                
-                <button onclick="getRecipe()" 
-                    class="absolute right-2 top-2 bottom-2 bg-dark-900 hover:bg-gold-500 hover:text-dark-900 text-white font-bold text-lg rounded-full px-8 transition-all duration-300 shadow-md">
-                    Cook
-                </button>
-            </div>
-
-            <!-- DANCING ANIMATION -->
-            <div class="dance-floor mt-16 flex flex-wrap justify-center items-end gap-3 md:gap-6 h-24">
-                <!-- Apple (New) -->
-                <i class="fa-solid fa-apple-whole text-5xl text-red-500 dancer" style="animation-delay: 0s"></i>
-
-                <!-- Carrot -->
-                <i class="fa-solid fa-carrot text-5xl text-orange-500 dancer" style="animation-delay: 0.1s"></i>
-                
-                <!-- Lemon (New) -->
-                <i class="fa-solid fa-lemon text-5xl text-yellow-400 dancer" style="animation-delay: 0.2s"></i>
-
-                <!-- Pepper -->
-                <i class="fa-solid fa-pepper-hot text-5xl text-red-600 dancer" style="animation-delay: 0.3s"></i>
-
-                <!-- The Chief (Changed Face to 'Starry Grin') -->
-                <div class="relative dancer z-10" style="animation-delay: 0.4s">
-                    <!-- Changed from fa-robot to fa-face-grin-stars for a happier, 'star chef' look -->
-                    <i class="fa-solid fa-face-grin-stars text-7xl text-dark-900 bg-white rounded-full"></i>
-                    <i class="fa-solid fa-hat-chef text-4xl text-gold-500 absolute -top-6 -right-2 transform rotate-12 drop-shadow-md"></i>
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-8 text-left">
+                <div>
+                    <label class="block text-xl font-bold text-gray-800 mb-3">Your Name</label>
+                    <input type="text" id="loginName" required class="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-gold-500 focus:outline-none text-2xl transition-colors placeholder-gray-400">
                 </div>
-                
-                <!-- Leaf -->
-                <i class="fa-solid fa-leaf text-5xl text-green-500 dancer" style="animation-delay: 0.5s"></i>
-
-                <!-- Seedling (New) -->
-                <i class="fa-solid fa-seedling text-5xl text-green-600 dancer" style="animation-delay: 0.6s"></i>
-                
-                <!-- Chicken (Drumstick) -->
-                <i class="fa-solid fa-drumstick-bite text-5xl text-yellow-700 dancer" style="animation-delay: 0.7s"></i>
-            </div>
-
+                <div>
+                    <label class="block text-xl font-bold text-gray-800 mb-3">Phone Number</label>
+                    <div class="relative">
+                        <input type="tel" id="loginPhone" required pattern="[0-9]{10}" maxlength="10" placeholder="e.g. 9876543210" class="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-gold-500 focus:outline-none text-2xl transition-colors placeholder-gray-400">
+                        <div id="phoneError" class="text-red-500 text-sm mt-2 hidden font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> Must be exactly 10 digits</div>
+                    </div>
+                </div>
+                <button type="submit" class="w-full bg-dark-900 text-white font-bold py-5 rounded-xl text-2xl hover:bg-gold-500 hover:text-dark-900 transition-all shadow-lg transform hover:-translate-y-1 mt-4">Start Cooking</button>
+            </form>
         </div>
     </div>
 
-    <!-- Main Content -->
-    <div class="container mx-auto px-4 py-12 max-w-5xl">
-        
-        <!-- Loading State -->
-        <div id="loader" class="hidden flex-col items-center justify-center py-16">
-            <div class="flex items-end gap-6 mb-8">
-                <i class="fa-solid fa-carrot text-5xl text-orange-500 cooking-bounce" style="animation-delay: 0s"></i>
-                <i class="fa-solid fa-pizza-slice text-5xl text-red-600 cooking-bounce" style="animation-delay: 0.1s"></i>
-                <i class="fa-solid fa-burger text-5xl text-yellow-500 cooking-bounce" style="animation-delay: 0.2s"></i>
+    <!-- MAIN APP LAYOUT -->
+    <div class="flex flex-1 h-screen overflow-hidden relative">
+        <aside id="sidebar" class="w-80 bg-dark-900 text-white flex flex-col border-r border-gray-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 absolute md:relative z-40 h-full">
+            <div class="p-6 border-b border-gray-800 bg-dark-800 flex justify-between items-center">
+                <div><h3 class="font-serif text-xl font-bold text-gold-400">My Cookbook</h3><p id="userDisplay" class="text-xs text-gray-400 mt-1">Guest</p></div>
+                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></button>
             </div>
-            <p id="loading-text" class="text-3xl font-serif text-dark-800 font-bold animate-pulse">Starting...</p>
-        </div>
+            <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+            <div class="p-4 border-t border-gray-800">
+                <button onclick="logout()" class="w-full py-3 px-4 rounded-xl bg-pink-600 hover:bg-grey-500 text-white font-bold text-lg transition-all shadow-lg transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </aside>
 
-        <!-- DARK MODE Result Card -->
-        <div id="resultContainer" class="hidden fade-in">
-            <div class="bg-dark-900 rounded-3xl shadow-2xl overflow-hidden border-4 border-gold-500">
-                
-                <!-- Card Header -->
-                <div class="bg-dark-800 p-8 border-b border-gray-700 relative overflow-hidden">
-                    <div class="relative z-10">
-                        <span id="categoryBadge" class="inline-block bg-gold-500 text-dark-900 px-4 py-2 rounded-lg text-sm font-extrabold uppercase tracking-widest mb-4 shadow-lg">
-                            Category
-                        </span>
-                        <h2 id="dishTitle" class="font-serif text-5xl font-bold text-white mb-2">Dish Name</h2>
+        <main class="flex-1 flex flex-col relative w-full bg-white h-full overflow-hidden">
+            <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 z-30 px-6 py-4 flex justify-between items-center shadow-sm">
+                <div class="flex items-center gap-4">
+                    <button onclick="toggleSidebar()" class="md:hidden text-dark-900 text-2xl"><i class="fa-solid fa-bars"></i></button>
+                    <div class="flex items-center gap-2 text-dark-900">
+                        <img src="./logo.png" alt="Gourmet AI Logoo" class="h-10 w-auto rounded-md shadow-sm">
+                        <span class="font-serif text-2xl font-bold">Gourmet<span class="text-purple-500"> A I</span></span>
                     </div>
                 </div>
-
-                <!-- Card Body (Dark Background, Large Text) -->
-                <div class="p-8 md:p-12 bg-dark-900">
-                    <div id="recipeContent" class="prose max-w-none">
-                        <!-- Content injected here -->
+            </nav>
+            <div id="mainScroll" class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
+                <div class="max-w-4xl mx-auto text-center py-10">
+                    <h1 class="font-serif text-4xl md:text-5xl font-bold text-dark-900 mb-6">What are you craving?</h1>
+                    <div class="relative max-w-2xl mx-auto">
+                        <input type="text" id="dishInput" class="w-full pl-6 pr-36 py-4 rounded-full border-2 border-gray-300 shadow-lg text-lg focus:outline-none focus:border-gold-500 focus:ring-4 focus:ring-gold-500/20 transition-all" placeholder="e.g. Pasta, Burger, Butter Chicken...">
+                        <button onclick="getRecipe()" class="absolute right-2 top-2 bottom-2 bg-dark-900 hover:bg-gold-500 hover:text-dark-900 text-white font-bold px-8 rounded-full transition-all duration-300">Cook</button>
                     </div>
                 </div>
-
+                <div id="loader" class="hidden flex-col items-center justify-center py-12">
+                    <div class="flex gap-4 mb-4">
+                        <i class="fa-solid fa-carrot text-4xl text-orange-500 animate-bounce"></i>
+                        <i class="fa-solid fa-utensils text-4xl text-gray-400 animate-bounce" style="animation-delay: 0.1s"></i>
+                        <i class="fa-solid fa-burger text-4xl text-gold-500 animate-bounce" style="animation-delay: 0.2s"></i>
+                    </div>
+                    <p class="text-xl font-serif text-gray-600 animate-pulse">The Chef is thinking...</p>
+                </div>
+                <div id="resultContainer" class="hidden max-w-4xl mx-auto fade-in mb-10">
+                    <div class="bg-dark-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
+                        <div class="bg-dark-800 p-8 border-b border-gray-700 flex justify-between items-start">
+                            <div>
+                                <h2 id="dishTitle" class="font-serif text-3xl md:text-4xl font-bold text-white">Dish Name</h2>
+                            </div>
+                            <button onclick="copyRecipe()" class="text-gray-400 hover:text-gold-500 transition-colors" title="Copy to Clipboard"><i class="fa-regular fa-copy text-2xl"></i></button>
+                        </div>
+                        <div class="p-8 md:p-10 bg-dark-900 text-gray-300">
+                            <div id="recipeContent" class="prose max-w-none"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </div>
+        </main>
     </div>
 
     <script>
-        let loadingInterval;
+        let currentUser = null;
+        let authToken = null;
 
-        function startLoadingAnimation() {
-            const messages = [
-                "Thinking simply...",
-                "Picking ingredients...",
-                "Heating the pan...",
-                "Almost ready...",
-            ];
-            const textElement = document.getElementById('loading-text');
-            let index = 0;
+        // --- AUTHENTICATION & LOGIN ---
+        
+        async function handleLogin(e) {
+            e.preventDefault();
+            const name = document.getElementById('loginName').value.trim();
+            const phone = document.getElementById('loginPhone').value.trim();
             
-            textElement.textContent = "Chef is thinking..."; 
-            
-            loadingInterval = setInterval(() => {
-                textElement.textContent = messages[index];
-                index = (index + 1) % messages.length;
-            }, 1500);
+            // Basic Client-side Validation
+            if (!/^\d{10}$/.test(phone)) {
+                document.getElementById('phoneError').classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ name, phone })
+                });
+                const data = await res.json();
+                
+                if (data.success) {
+                    // SECURITY: Store the JWT Token
+                    authToken = data.token;
+                    currentUser = data.user;
+                    localStorage.setItem('chefUser', JSON.stringify(currentUser));
+                    localStorage.setItem('chefToken', authToken); // Secure storage in LS (HttpOnly cookie is better for prod, but LS is okay for this level)
+                    
+                    closeLoginModal();
+                    updateUserUI();
+                    loadHistory();
+                } else {
+                    alert("Login failed: " + (data.error || "Unknown error"));
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Server connection error");
+            }
         }
 
-        function stopLoadingAnimation() {
-            clearInterval(loadingInterval);
+        function checkSession() {
+            const savedUser = localStorage.getItem('chefUser');
+            const savedToken = localStorage.getItem('chefToken');
+            
+            if (savedUser && savedToken) {
+                currentUser = JSON.parse(savedUser);
+                authToken = savedToken;
+                closeLoginModal();
+                updateUserUI();
+                loadHistory();
+            } else {
+                document.getElementById('loginModal').classList.remove('hidden');
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('chefUser');
+            localStorage.removeItem('chefToken');
+            currentUser = null;
+            authToken = null;
+            location.reload(); 
+        }
+
+        // --- CORE FUNCTIONALITY (SECURED) ---
+
+        async function loadHistory() {
+            if (!authToken) return;
+            try {
+                // SECURITY: Authorization Header used instead of sending phone in query
+                const res = await fetch(`/api/history`, {
+                    headers: {
+                        'Authorization': `Bearer ${authToken}`
+                    }
+                });
+                
+                if (res.status === 401 || res.status === 403) {
+                    logout(); // Token expired or invalid
+                    return;
+                }
+
+                const history = await res.json();
+                renderHistoryList(history);
+            } catch (err) {
+                console.error("Error loading history", err);
+            }
         }
 
         async function getRecipe() {
             const dishInput = document.getElementById('dishInput');
             const dish = dishInput.value.trim();
-            const loader = document.getElementById('loader');
-            const resultContainer = document.getElementById('resultContainer');
-            
+            if (!authToken) return alert("Please login first");
             if (!dish) return;
 
+            // UI Logic
+            const loader = document.getElementById('loader');
+            const resultContainer = document.getElementById('resultContainer');
             loader.classList.remove('hidden');
             loader.classList.add('flex');
             resultContainer.classList.add('hidden');
             dishInput.blur();
-            
-            startLoadingAnimation();
 
             try {
+                // SECURITY: Authorization Header used
                 const response = await fetch('/api/get-recipe', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${authToken}` 
+                    },
                     body: JSON.stringify({ dish })
                 });
-
+                
                 const data = await response.json();
-
+                
                 if (response.ok) {
-                    renderRecipe(dish, data.category, data.recipe);
+                    showRecipe(data);
+                    loadHistory();
                 } else {
                     alert("Error: " + data.error);
                 }
-
             } catch (error) {
                 console.error(error);
                 alert("Connection Error");
             } finally {
-                stopLoadingAnimation();
                 loader.classList.add('hidden');
                 loader.classList.remove('flex');
             }
         }
 
-        function renderRecipe(title, category, markdownText) {
+        function showRecipe(data) {
             const container = document.getElementById('resultContainer');
             const titleEl = document.getElementById('dishTitle');
-            const badgeEl = document.getElementById('categoryBadge');
             const contentEl = document.getElementById('recipeContent');
-
-            titleEl.textContent = title;
-            badgeEl.textContent = category;
-            contentEl.innerHTML = marked.parse(markdownText);
-
+            
+            titleEl.textContent = data.dishName; // .textContent prevents HTML injection in title
+            
+            // SECURITY: Sanitize HTML using DOMPurify before rendering
+            const dirtyHTML = marked.parse(data.recipe);
+            const cleanHTML = DOMPurify.sanitize(dirtyHTML);
+            contentEl.innerHTML = cleanHTML;
+            
             container.classList.remove('hidden');
-            container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            if(window.innerWidth < 768) {
+                container.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        // --- UI HELPERS ---
+
+        function closeLoginModal() {
+            document.getElementById('loginModal').classList.add('hidden');
+        }
+
+        function updateUserUI() {
+            if(currentUser) {
+                document.getElementById('userDisplay').textContent = `${currentUser.name} (${currentUser.phone})`;
+            }
+        }
+
+        function renderHistoryList(items) {
+            const listEl = document.getElementById('historyList');
+            listEl.innerHTML = '';
+            if (!items || items.length === 0) {
+                listEl.innerHTML = `<div class="text-center text-gray-500 mt-10"><i class="fa-solid fa-book-open text-4xl mb-3 opacity-30"></i><p>No recipes yet.</p></div>`;
+                return;
+            }
+            items.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-dark-800 p-3 rounded-lg border border-gray-700 hover:border-gold-500 cursor-pointer transition-all group";
+                div.onclick = () => showRecipe(item);
+                // TextContent usage for safety
+                const titleH4 = document.createElement('h4');
+                titleH4.className = "font-bold text-gray-200 group-hover:text-gold-400 truncate w-full";
+                titleH4.textContent = item.dishName;
+
+                const dateP = document.createElement('p');
+                dateP.className = "text-xs text-gray-500 mt-1";
+                dateP.textContent = new Date(item.createdAt).toLocaleDateString();
+
+                div.appendChild(titleH4);
+                div.appendChild(dateP);
+                listEl.appendChild(div);
+            });
+        }
+
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('-translate-x-full')) sidebar.classList.remove('-translate-x-full');
+            else sidebar.classList.add('-translate-x-full');
         }
         
+        function copyRecipe() {
+             const content = document.getElementById('recipeContent').innerText;
+             navigator.clipboard.writeText(content).then(() => alert("Recipe copied!"));
+        }
+
         document.getElementById('dishInput').addEventListener('keypress', function (e) {
             if (e.key === 'Enter') getRecipe();
         });
+
+        checkSession();
     </script>
 </body>
 </html>
