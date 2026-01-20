@@ -5,20 +5,18 @@ const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const jwt = require('jsonwebtoken');
-const { ChatGoogleGenerativeAI } = require("@langchain/google-genai");
-const { HumanMessage } = require("@langchain/core/messages");
-const { StateGraph, START, END } = require("@langchain/langgraph");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 
 // --- Configuration ---
 const app = express();
 const PORT = process.env.PORT || 3000;
 const JWT_SECRET = process.env.JWT_SECRET || "CHANGE_THIS_TO_A_SUPER_COMPLEX_KEY_IN_ENV";
 
-// --- Security Middleware ---
+if (!process.env.GOOGLE_API_KEY) {
+  console.error("❌ CRITICAL ERROR: GOOGLE_API_KEY is missing in .env file.");
+}
 
-// FIX: We must disable the default Content Security Policy (CSP) 
-// because we are using CDNs (Tailwind, FontAwesome) on the frontend.
-// Without this, the browser blocks the styles and scripts.
+// --- Security Middleware ---
 app.use(helmet({
   contentSecurityPolicy: false,
   crossOriginEmbedderPolicy: false
@@ -40,7 +38,9 @@ app.use('/api/', apiLimiter);
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/chefbot';
 mongoose.connect(MONGO_URI)
   .then(() => console.log('✅ MongoDB Connected'))
-  .catch(err => console.error('❌ MongoDB Connection Error:', err.message));
+  .catch(err => {
+      console.error('❌ MongoDB Connection Error:', err.message);
+  });
 
 // --- Schemas ---
 const UserSchema = new mongoose.Schema({
@@ -60,67 +60,18 @@ const RequestSchema = new mongoose.Schema({
 const RequestModel = mongoose.model('RecipeRequest', RequestSchema);
 
 // --- AI Setup ---
-const llm = new ChatGoogleGenerativeAI({
-  model: "gemini-2.5-flash-preview-09-2025",
-  temperature: 0.3,
-  apiKey: process.env.GOOGLE_API_KEY
-});
-
-// Node: Recipe Generation
-async function recipeNode(state) {
-  const { dish_name } = state;
-  console.log(`[Generating Recipe] For ${dish_name}...`);
-
-  const prompt = `
-  You are a specialized Gourmet Chef AI.
-
-  SYSTEM INSTRUCTIONS:
-  1. Your ONLY purpose is to provide cooking recipes.
-  2. You must analyze the content inside the "USER_REQUEST" delimiter below.
-  3. **SAFETY CHECK:** If the content inside the delimiter is NOT a food item (e.g., it asks about code, politics, math, or hacking), you must REFUSE.
-     - Refusal Message: "🚫 **Security Alert:** I can only help with cooking and recipes."
-  4. If valid, format the output with:
-     - A Markdown Table for ingredients.
-     - Numbered list for steps.
-  5. Do NOT include any intro/outro conversation.
-
-  USER_REQUEST:
-  """
-  ${dish_name}
-  """
-  
-  Execute the system instructions on the USER_REQUEST above.
-  `;
-
-  const response = await llm.invoke([new HumanMessage(prompt)]);
-  return { recipe: response.content };
-}
-
-// Graph Definition
-const graphState = {
-  dish_name: { value: (x, y) => y ? y : x, default: () => null },
-  recipe: { value: (x, y) => y ? y : x, default: () => null }
-};
-
-const workflow = new StateGraph({ channels: graphState })
-  .addNode("generate_recipe", recipeNode)
-  .addEdge(START, "generate_recipe")
-  .addEdge("generate_recipe", END);
-
-const appGraph = workflow.compile();
-
-// --- Validation Utils ---
-const isValidPhone = (phone) => /^\d{10}$/.test(phone);
+const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash-preview-09-2025" });
 
 // --- Authentication Middleware ---
 const authenticateToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
   const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) return res.status(401).json({ error: "Access Denied: No Token Provided" });
+  if (!token) return res.status(401).json({ error: "Access Denied" });
 
   jwt.verify(token, JWT_SECRET, (err, user) => {
-    if (err) return res.status(403).json({ error: "Access Denied: Invalid Token" });
+    if (err) return res.status(403).json({ error: "Invalid Token" });
     req.user = user; 
     next();
   });
@@ -128,31 +79,26 @@ const authenticateToken = (req, res, next) => {
 
 // --- API Routes ---
 
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
+
 app.post('/api/login', async (req, res) => {
     const { name, phone } = req.body;
     
-    if (!name || !phone || typeof name !== 'string' || typeof phone !== 'string') {
-        return res.status(400).json({ error: "Invalid input" });
-    }
-    if (!isValidPhone(phone)) return res.status(400).json({ error: "Phone number must be exactly 10 digits" });
+    if (!name || !phone) return res.status(400).json({ error: "Invalid input" });
+    if (!/^\d{10}$/.test(phone)) return res.status(400).json({ error: "Phone number must be exactly 10 digits" });
 
     try {
         let user = await UserModel.findOne({ phone });
         if (!user) {
             user = new UserModel({ name, phone });
             await user.save();
-            console.log(`🆕 New User Created: ${name}`);
         }
 
-        const token = jwt.sign(
-            { id: user._id, phone: user.phone, name: user.name }, 
-            JWT_SECRET, 
-            { expiresIn: '2h' }
-        );
-
+        const token = jwt.sign({ id: user._id, phone: user.phone, name: user.name }, JWT_SECRET, { expiresIn: '24h' });
         res.json({ success: true, token, user: { name: user.name, phone: user.phone } });
     } catch (error) {
-        console.error("Login Error:", error);
         res.status(500).json({ error: "Login failed" });
     }
 });
@@ -171,30 +117,51 @@ app.post('/api/get-recipe', authenticateToken, async (req, res) => {
     const { dish } = req.body;
     if (!dish) return res.status(400).json({ error: "Dish name required" });
 
-    const inputs = { dish_name: dish };
-    const result = await appGraph.invoke(inputs);
+    console.log(`[Generating Recipe] For ${dish}...`);
+
+    const prompt = `
+    You are a Chef API. The user wants a recipe for: "${dish}".
+
+    STRICT OUTPUT RULES:
+    1. Do NOT include any introductory text.
+    2. Start IMMEDIATELY with a Markdown Table for Ingredients.
+    3. Followed immediately by a Markdown Numbered List for Steps.
+    4. Do NOT include a conclusion or outro.
+    
+    Format Example:
+    
+    | Ingredient | Quantity |
+    |------------|----------|
+    | Item 1     | 1 cup    |
+
+    ## Instructions
+    1. Step one...
+    `;
+
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const recipeText = response.text();
 
     const newRequest = new RequestModel({
       userPhone: req.user.phone, 
       dishName: dish,
-      category: "Gourmet",
-      recipe: result.recipe
+      recipe: recipeText
     });
     await newRequest.save();
 
     res.json({
       _id: newRequest._id,
       dishName: dish,
-      recipe: result.recipe,
+      recipe: recipeText, 
       createdAt: newRequest.createdAt
     });
 
   } catch (error) {
-    console.error("Error processing request:", error);
-    res.status(500).json({ error: "Something went wrong." });
+    console.error("AI Error:", error);
+    res.status(500).json({ error: "Chef is busy (Server Error)" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`🛡️  Secure Server running on http://localhost:${PORT}`);
+  console.log(`🛡️  Server running on http://localhost:${PORT}`);
 });

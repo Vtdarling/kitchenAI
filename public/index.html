@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gourmet AI Chef - Secure</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gourmet AI Chef - Mobile</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- SECURITY: DOMPurify for XSS Protection -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.6/purify.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- FIX: Pinned 'marked' version to 4.3.0 to prevent [object Object] error -->
+    <script src="https://cdn.jsdelivr.net/npm/marked@4.3.0/marked.min.js"></script>
     
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet">
     <script>
@@ -23,20 +24,91 @@
         }
     </script>
     <style>
-        .prose h1, .prose h2, .prose h3 { font-family: 'Playfair Display', serif; color: #fbbf24; margin-top: 1.5em; margin-bottom: 0.8em; font-weight: 700; }
-        .prose h1 { font-size: 2.5rem; }
-        .prose h2 { font-size: 2.2rem; border-bottom: 3px solid #f59e0b; padding-bottom: 0.5rem; display: inline-block; }
-        .prose table { width: 100%; border-collapse: separate; border-spacing: 0; margin-bottom: 2rem; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5); border: 1px solid #374151; font-size: 1.15rem; }
-        .prose thead tr { background: #f59e0b; color: #111827; }
-        .prose th { padding: 1rem; text-align: left; font-weight: 800; text-transform: uppercase; }
-        .prose td { padding: 1rem; border-bottom: 1px solid #374151; background-color: #1f2937; color: #f3f4f6; }
-        .prose ol { list-style: none; counter-reset: recipe-step; padding: 0; font-size: 1.25rem; }
-        .prose ol li { position: relative; padding-left: 3.5rem; margin-bottom: 1.5rem; color: #e5e7eb; line-height: 1.6; }
-        .prose ol li::before { content: counter(recipe-step); counter-increment: recipe-step; position: absolute; left: 0; top: 0; width: 2.5rem; height: 2.5rem; background: #f59e0b; color: #111827; border-radius: 50%; text-align: center; line-height: 2.5rem; font-weight: 800; }
-        .prose strong { color: #fbbf24; }
+        /* --- BIG FONT TYPOGRAPHY --- */
+        .prose h1, .prose h2, .prose h3 { 
+            font-family: 'Playfair Display', serif; 
+            color: #fbbf24; 
+            margin-top: 1.5em; 
+            margin-bottom: 0.8em; 
+            font-weight: 700; 
+            line-height: 1.2;
+        }
+        
+        /* Headers */
+        .prose h1 { font-size: 3rem; }
+        .prose h2 { font-size: 2.2rem; border-bottom: 3px solid #f59e0b; padding-bottom: 0.5rem; display: inline-block; margin-top: 2rem; }
+        .prose h3 { font-size: 1.8rem; color: #e5e7eb; }
+
+        /* TABLE STYLING */
+        .table-container { 
+            overflow-x: auto; 
+            -webkit-overflow-scrolling: touch; 
+            margin-bottom: 2rem; 
+            margin-top: 1rem;
+            border-radius: 12px; 
+            border: 1px solid #374151;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+        }
+        
+        table { width: 100%; border-collapse: collapse; min-width: 300px; }
+        
+        thead { background: #f59e0b; }
+        th { 
+            padding: 1.2rem; 
+            text-align: left; 
+            font-weight: 800; 
+            color: #111827; 
+            text-transform: uppercase; 
+            font-size: 1.2rem;
+            white-space: nowrap;
+        }
+        
+        tbody tr { border-bottom: 1px solid #374151; background-color: #1f2937; }
+        tbody tr:last-child { border-bottom: none; }
+        td { 
+            padding: 1.5rem; /* Large padding for touch */
+            color: #f3f4f6; 
+            font-size: 1.5rem; /* BIG FONT FOR INGREDIENTS */
+            line-height: 1.4;
+        }
+        
+        /* LIST STYLING */
+        ol { list-style: none; counter-reset: recipe-step; padding: 0; margin-top: 1rem; }
+        ol li { 
+            position: relative; 
+            padding-left: 5rem; 
+            margin-bottom: 2.5rem; 
+            color: #e5e7eb; 
+            line-height: 1.5; 
+            font-size: 1.5rem; /* BIG FONT FOR STEPS */
+        }
+        ol li::before { 
+            content: counter(recipe-step); 
+            counter-increment: recipe-step; 
+            position: absolute; 
+            left: 0; 
+            top: 0; 
+            width: 4rem; 
+            height: 4rem; 
+            background: #f59e0b; 
+            color: #111827; 
+            border-radius: 50%; 
+            text-align: center; 
+            line-height: 4rem; 
+            font-weight: 800; 
+            font-size: 1.8rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.5);
+        }
+        
+        strong { color: #fbbf24; font-weight: 700; }
+        p { margin-bottom: 1rem; font-size: 1.3rem; color: #9ca3af; }
+
+        /* Animation */
         .fade-in { animation: fadeIn 0.8s ease-in-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        ::-webkit-scrollbar { width: 8px; }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: #1f2937; }
         ::-webkit-scrollbar-thumb { background: #f59e0b; border-radius: 4px; }
     </style>
@@ -45,84 +117,101 @@
 
     <!-- LOGIN MODAL -->
     <div id="loginModal" class="fixed inset-0 z-[100] bg-dark-900 flex items-center justify-center p-4">
-        <div class="bg-white rounded-3xl p-8 md:p-12 max-w-lg w-full shadow-2xl relative overflow-hidden text-center">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-gold-400 rounded-full opacity-20"></div>
-            <div class="mb-8">
-                <img src="./logo.png" alt="Gourmet AI Logo" class="h-24 w-auto mx-auto mb-4 rounded-xl shadow-md">
-                <h2 class="text-4xl font-serif font-bold text-dark-900">Chef's Table</h2>
-                <p class="text-gray-500 mt-2 text-lg">Login securely to save your recipes.</p>
+        <div class="bg-white rounded-3xl p-6 md:p-12 max-w-lg w-full shadow-2xl relative overflow-hidden text-center">
+            <div class="mb-6">
+                <!-- Icon fallback -->
+                <i class="fa-solid fa-hat-chef text-6xl text-gold-500 mb-4 block"></i>
+                <h2 class="text-3xl font-serif font-bold text-dark-900">Chef's Table</h2>
             </div>
-            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-8 text-left">
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-6 text-left">
                 <div>
-                    <label class="block text-xl font-bold text-gray-800 mb-3">Your Name</label>
-                    <input type="text" id="loginName" required class="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-gold-500 focus:outline-none text-2xl transition-colors placeholder-gray-400">
+                    <label class="block text-lg font-bold text-gray-800 mb-2">Your Name</label>
+                    <input type="text" id="loginName" required class="w-full px-5 py-4 rounded-xl border-2 border-gray-300 focus:border-gold-500 focus:outline-none text-xl">
                 </div>
                 <div>
-                    <label class="block text-xl font-bold text-gray-800 mb-3">Phone Number</label>
-                    <div class="relative">
-                        <input type="tel" id="loginPhone" required pattern="[0-9]{10}" maxlength="10" placeholder="e.g. 9876543210" class="w-full px-6 py-4 rounded-xl border-2 border-gray-300 focus:border-gold-500 focus:outline-none text-2xl transition-colors placeholder-gray-400">
-                        <div id="phoneError" class="text-red-500 text-sm mt-2 hidden font-bold"><i class="fa-solid fa-circle-exclamation mr-1"></i> Must be exactly 10 digits</div>
-                    </div>
+                    <label class="block text-lg font-bold text-gray-800 mb-2">Phone</label>
+                    <input type="tel" id="loginPhone" required pattern="[0-9]{10}" maxlength="10" placeholder="10 digits" class="w-full px-5 py-4 rounded-xl border-2 border-gray-300 focus:border-gold-500 focus:outline-none text-xl">
                 </div>
-                <button type="submit" class="w-full bg-dark-900 text-white font-bold py-5 rounded-xl text-2xl hover:bg-gold-500 hover:text-dark-900 transition-all shadow-lg transform hover:-translate-y-1 mt-4">Start Cooking</button>
+                <button type="submit" class="w-full bg-dark-900 text-white font-bold py-4 rounded-xl text-xl hover:bg-gold-500 hover:text-dark-900 transition-all shadow-lg">Start Cooking</button>
             </form>
         </div>
     </div>
 
     <!-- MAIN APP LAYOUT -->
     <div class="flex flex-1 h-screen overflow-hidden relative">
-        <aside id="sidebar" class="w-80 bg-dark-900 text-white flex flex-col border-r border-gray-800 transform -translate-x-full md:translate-x-0 transition-transform duration-300 absolute md:relative z-40 h-full">
+        
+        <!-- SIDEBAR -->
+        <aside id="sidebar" class="w-full md:w-80 bg-dark-900 text-white flex flex-col border-r border-gray-800 fixed md:relative z-50 h-full transform transition-transform duration-300 -translate-x-full md:translate-x-0">
             <div class="p-6 border-b border-gray-800 bg-dark-800 flex justify-between items-center">
-                <div><h3 class="font-serif text-xl font-bold text-gold-400">My Cookbook</h3><p id="userDisplay" class="text-xs text-gray-400 mt-1">Guest</p></div>
-                <button onclick="toggleSidebar()" class="md:hidden text-gray-400 hover:text-white"><i class="fa-solid fa-times text-xl"></i></button>
+                <div>
+                    <h3 class="font-serif text-2xl font-bold text-gold-400">Cookbook</h3>
+                    <p id="userDisplay" class="text-sm text-gray-400 mt-1">Guest</p>
+                </div>
+                <button onclick="toggleSidebar()" class="md:hidden text-white bg-dark-700 p-2 rounded-lg hover:bg-red-500 transition-colors">
+                    <i class="fa-solid fa-times text-xl"></i>
+                </button>
             </div>
             <div id="historyList" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
             <div class="p-4 border-t border-gray-800">
-                <button onclick="logout()" class="w-full py-3 px-4 rounded-xl bg-pink-600 hover:bg-grey-500 text-white font-bold text-lg transition-all shadow-lg transform hover:scale-[1.02] flex items-center justify-center gap-2">
+                <button onclick="logout()" class="w-full py-4 rounded-xl bg-pink-600 text-white font-bold text-lg shadow-lg flex items-center justify-center gap-2">
                     <i class="fa-solid fa-sign-out-alt"></i> Logout
                 </button>
             </div>
         </aside>
 
+        <!-- MAIN CONTENT -->
         <main class="flex-1 flex flex-col relative w-full bg-white h-full overflow-hidden">
-            <nav class="bg-white/80 backdrop-blur-md border-b border-gray-200 z-30 px-6 py-4 flex justify-between items-center shadow-sm">
-                <div class="flex items-center gap-4">
-                    <button onclick="toggleSidebar()" class="md:hidden text-dark-900 text-2xl"><i class="fa-solid fa-bars"></i></button>
-                    <div class="flex items-center gap-2 text-dark-900">
-                        <img src="./logo.png" alt="Gourmet AI Logoo" class="h-10 w-auto rounded-md shadow-sm">
-                        <span class="font-serif text-2xl font-bold">Gourmet<span class="text-purple-500"> A I</span></span>
+            <nav class="bg-white/90 backdrop-blur-md border-b border-gray-200 z-30 px-4 py-4 flex justify-between items-center shadow-sm h-20">
+                <div class="flex items-center gap-4 w-full">
+                    <button onclick="toggleSidebar()" class="md:hidden text-dark-900 p-2 bg-gray-100 rounded-lg">
+                        <i class="fa-solid fa-bars text-2xl"></i>
+                    </button>
+                    <div class="flex items-center gap-2 text-dark-900 mx-auto md:mx-0">
+                        <span class="font-serif text-3xl font-bold">Gourmet<span class="text-gold-500">AI</span></span>
                     </div>
+                    <div class="w-10 md:hidden"></div>
                 </div>
             </nav>
+
             <div id="mainScroll" class="flex-1 overflow-y-auto bg-gray-50 p-4 md:p-8">
-                <div class="max-w-4xl mx-auto text-center py-10">
-                    <h1 class="font-serif text-4xl md:text-5xl font-bold text-dark-900 mb-6">What are you craving?</h1>
+                
+                <!-- Search -->
+                <div class="max-w-4xl mx-auto text-center py-6 md:py-10">
+                    <h1 class="font-serif text-4xl md:text-6xl font-bold text-dark-900 mb-6 leading-tight">What are you <br class="md:hidden"/>craving?</h1>
                     <div class="relative max-w-2xl mx-auto">
-                        <input type="text" id="dishInput" class="w-full pl-6 pr-36 py-4 rounded-full border-2 border-gray-300 shadow-lg text-lg focus:outline-none focus:border-gold-500 focus:ring-4 focus:ring-gold-500/20 transition-all" placeholder="e.g. Pasta, Burger, Butter Chicken...">
-                        <button onclick="getRecipe()" class="absolute right-2 top-2 bottom-2 bg-dark-900 hover:bg-gold-500 hover:text-dark-900 text-white font-bold px-8 rounded-full transition-all duration-300">Cook</button>
+                        <input type="text" id="dishInput" class="w-full pl-6 pr-4 py-5 rounded-3xl border-2 border-gray-300 shadow-lg text-xl focus:outline-none focus:border-gold-500 focus:ring-4 focus:ring-gold-500/20 transition-all mb-4 md:mb-0" placeholder="e.g. Pasta, Burger...">
+                        <button onclick="getRecipe()" class="w-full md:w-auto md:absolute md:right-2 md:top-2 md:bottom-2 bg-dark-900 hover:bg-gold-500 hover:text-dark-900 text-white font-bold px-8 py-4 md:py-0 rounded-2xl md:rounded-full text-xl transition-all duration-300 shadow-xl">
+                            Cook <i class="fa-solid fa-fire ml-2"></i>
+                        </button>
                     </div>
                 </div>
+
+                <!-- Loader -->
                 <div id="loader" class="hidden flex-col items-center justify-center py-12">
-                    <div class="flex gap-4 mb-4">
-                        <i class="fa-solid fa-carrot text-4xl text-orange-500 animate-bounce"></i>
-                        <i class="fa-solid fa-utensils text-4xl text-gray-400 animate-bounce" style="animation-delay: 0.1s"></i>
-                        <i class="fa-solid fa-burger text-4xl text-gold-500 animate-bounce" style="animation-delay: 0.2s"></i>
+                    <div class="flex gap-4 mb-6">
+                        <i class="fa-solid fa-carrot text-5xl text-orange-500 animate-bounce"></i>
+                        <i class="fa-solid fa-utensils text-5xl text-gray-400 animate-bounce" style="animation-delay: 0.1s"></i>
+                        <i class="fa-solid fa-burger text-5xl text-gold-500 animate-bounce" style="animation-delay: 0.2s"></i>
                     </div>
-                    <p class="text-xl font-serif text-gray-600 animate-pulse">The Chef is thinking...</p>
+                    <p class="text-2xl font-serif text-gray-600 animate-pulse text-center">Creating Recipe...</p>
                 </div>
-                <div id="resultContainer" class="hidden max-w-4xl mx-auto fade-in mb-10">
+
+                <!-- Result -->
+                <div id="resultContainer" class="hidden max-w-4xl mx-auto fade-in mb-20">
                     <div class="bg-dark-900 rounded-2xl shadow-2xl overflow-hidden border border-gray-700">
-                        <div class="bg-dark-800 p-8 border-b border-gray-700 flex justify-between items-start">
-                            <div>
-                                <h2 id="dishTitle" class="font-serif text-3xl md:text-4xl font-bold text-white">Dish Name</h2>
-                            </div>
-                            <button onclick="copyRecipe()" class="text-gray-400 hover:text-gold-500 transition-colors" title="Copy to Clipboard"><i class="fa-regular fa-copy text-2xl"></i></button>
+                        <div class="bg-dark-800 p-6 md:p-8 border-b border-gray-700 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                            <h2 id="dishTitle" class="font-serif text-3xl md:text-5xl font-bold text-white leading-tight">Dish Name</h2>
+                            <button onclick="copyRecipe()" class="self-end md:self-auto px-4 py-2 bg-dark-700 rounded-lg text-gold-400 hover:bg-gold-500 hover:text-dark-900 transition-colors flex items-center gap-2 font-bold">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
                         </div>
-                        <div class="p-8 md:p-10 bg-dark-900 text-gray-300">
+                        <div class="p-4 md:p-10 bg-dark-900 text-gray-300">
+                            <!-- Recipe Content Injection Point -->
                             <div id="recipeContent" class="prose max-w-none"></div>
                         </div>
                     </div>
                 </div>
+
             </div>
         </main>
     </div>
@@ -131,18 +220,25 @@
         let currentUser = null;
         let authToken = null;
 
-        // --- AUTHENTICATION & LOGIN ---
-        
+        // --- 1. SETUP MARKDOWN RENDERER ---
+        // Using Pinned marked@4.3.0, the renderer signature is definitely (header, body)
+        const renderer = {
+            table(header, body) {
+                // Returns string for HTML injection
+                return `<div class="table-container"><table><thead>${header}</thead><tbody>${body}</tbody></table></div>`;
+            }
+        };
+        // Register the renderer globally
+        marked.use({ renderer });
+
+        // --- AUTH & API ---
+
         async function handleLogin(e) {
             e.preventDefault();
             const name = document.getElementById('loginName').value.trim();
             const phone = document.getElementById('loginPhone').value.trim();
             
-            // Basic Client-side Validation
-            if (!/^\d{10}$/.test(phone)) {
-                document.getElementById('phoneError').classList.remove('hidden');
-                return;
-            }
+            if (!/^\d{10}$/.test(phone)) return alert("Phone must be 10 digits");
 
             try {
                 const res = await fetch('/api/login', {
@@ -153,28 +249,22 @@
                 const data = await res.json();
                 
                 if (data.success) {
-                    // SECURITY: Store the JWT Token
                     authToken = data.token;
                     currentUser = data.user;
                     localStorage.setItem('chefUser', JSON.stringify(currentUser));
-                    localStorage.setItem('chefToken', authToken); // Secure storage in LS (HttpOnly cookie is better for prod, but LS is okay for this level)
-                    
+                    localStorage.setItem('chefToken', authToken);
                     closeLoginModal();
                     updateUserUI();
                     loadHistory();
                 } else {
                     alert("Login failed: " + (data.error || "Unknown error"));
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Server connection error");
-            }
+            } catch (err) { alert("Connection error"); }
         }
 
         function checkSession() {
             const savedUser = localStorage.getItem('chefUser');
             const savedToken = localStorage.getItem('chefToken');
-            
             if (savedUser && savedToken) {
                 currentUser = JSON.parse(savedUser);
                 authToken = savedToken;
@@ -187,35 +277,18 @@
         }
 
         function logout() {
-            localStorage.removeItem('chefUser');
-            localStorage.removeItem('chefToken');
-            currentUser = null;
-            authToken = null;
+            localStorage.clear();
             location.reload(); 
         }
-
-        // --- CORE FUNCTIONALITY (SECURED) ---
 
         async function loadHistory() {
             if (!authToken) return;
             try {
-                // SECURITY: Authorization Header used instead of sending phone in query
-                const res = await fetch(`/api/history`, {
-                    headers: {
-                        'Authorization': `Bearer ${authToken}`
-                    }
-                });
-                
-                if (res.status === 401 || res.status === 403) {
-                    logout(); // Token expired or invalid
-                    return;
-                }
-
+                const res = await fetch(`/api/history`, { headers: { 'Authorization': `Bearer ${authToken}` } });
+                if (res.status === 401) return logout();
                 const history = await res.json();
                 renderHistoryList(history);
-            } catch (err) {
-                console.error("Error loading history", err);
-            }
+            } catch (err) { console.error(err); }
         }
 
         async function getRecipe() {
@@ -224,94 +297,85 @@
             if (!authToken) return alert("Please login first");
             if (!dish) return;
 
-            // UI Logic
-            const loader = document.getElementById('loader');
-            const resultContainer = document.getElementById('resultContainer');
-            loader.classList.remove('hidden');
-            loader.classList.add('flex');
-            resultContainer.classList.add('hidden');
+            document.getElementById('loader').classList.remove('hidden');
+            document.getElementById('loader').classList.add('flex');
+            document.getElementById('resultContainer').classList.add('hidden');
+            if(window.innerWidth < 768) toggleSidebar(); 
             dishInput.blur();
 
             try {
-                // SECURITY: Authorization Header used
                 const response = await fetch('/api/get-recipe', {
                     method: 'POST',
-                    headers: { 
-                        'Content-Type': 'application/json',
-                        'Authorization': `Bearer ${authToken}` 
-                    },
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${authToken}` },
                     body: JSON.stringify({ dish })
                 });
-                
                 const data = await response.json();
                 
                 if (response.ok) {
                     showRecipe(data);
                     loadHistory();
                 } else {
-                    alert("Error: " + data.error);
+                    let msg = "Unknown Error";
+                    if (typeof data.error === 'string') msg = data.error;
+                    else if (data.error && data.error.message) msg = data.error.message;
+                    alert("Error: " + msg);
                 }
-            } catch (error) {
+            } catch (error) { 
                 console.error(error);
-                alert("Connection Error");
-            } finally {
-                loader.classList.add('hidden');
-                loader.classList.remove('flex');
+                alert("Connection Error"); 
+            } 
+            finally {
+                document.getElementById('loader').classList.add('hidden');
+                document.getElementById('loader').classList.remove('flex');
             }
         }
 
         function showRecipe(data) {
             const container = document.getElementById('resultContainer');
-            const titleEl = document.getElementById('dishTitle');
-            const contentEl = document.getElementById('recipeContent');
+            document.getElementById('dishTitle').textContent = data.dishName;
             
-            titleEl.textContent = data.dishName; // .textContent prevents HTML injection in title
-            
-            // SECURITY: Sanitize HTML using DOMPurify before rendering
-            const dirtyHTML = marked.parse(data.recipe);
-            const cleanHTML = DOMPurify.sanitize(dirtyHTML);
-            contentEl.innerHTML = cleanHTML;
+            // --- PARSING LOGIC ---
+            let recipeText = "";
+            if (typeof data.recipe === 'string') {
+                recipeText = data.recipe;
+            } else if (data.recipe && typeof data.recipe === 'object') {
+                console.warn("Received object instead of string for recipe", data.recipe);
+                recipeText = JSON.stringify(data.recipe);
+            }
+
+            // Clean previous content
+            document.getElementById('recipeContent').innerHTML = "";
+
+            try {
+                // Parse using the global renderer (Synchronous in marked@4.3.0)
+                const htmlContent = marked.parse(recipeText);
+                
+                // Sanitize
+                const cleanHTML = DOMPurify.sanitize(htmlContent, { ADD_TAGS: ['table', 'thead', 'tbody', 'tr', 'td', 'th'] });
+                
+                document.getElementById('recipeContent').innerHTML = cleanHTML;
+            } catch (e) {
+                console.error("Markdown parsing failed:", e);
+                document.getElementById('recipeContent').innerText = "Error displaying recipe. Text: " + recipeText;
+            }
             
             container.classList.remove('hidden');
-            if(window.innerWidth < 768) {
-                container.scrollIntoView({ behavior: 'smooth' });
-            }
+            setTimeout(() => {
+                container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
         }
 
-        // --- UI HELPERS ---
-
-        function closeLoginModal() {
-            document.getElementById('loginModal').classList.add('hidden');
-        }
-
-        function updateUserUI() {
-            if(currentUser) {
-                document.getElementById('userDisplay').textContent = `${currentUser.name} (${currentUser.phone})`;
-            }
-        }
-
+        function closeLoginModal() { document.getElementById('loginModal').classList.add('hidden'); }
+        function updateUserUI() { if(currentUser) document.getElementById('userDisplay').textContent = currentUser.name; }
+        
         function renderHistoryList(items) {
             const listEl = document.getElementById('historyList');
             listEl.innerHTML = '';
-            if (!items || items.length === 0) {
-                listEl.innerHTML = `<div class="text-center text-gray-500 mt-10"><i class="fa-solid fa-book-open text-4xl mb-3 opacity-30"></i><p>No recipes yet.</p></div>`;
-                return;
-            }
             items.forEach(item => {
                 const div = document.createElement('div');
-                div.className = "bg-dark-800 p-3 rounded-lg border border-gray-700 hover:border-gold-500 cursor-pointer transition-all group";
-                div.onclick = () => showRecipe(item);
-                // TextContent usage for safety
-                const titleH4 = document.createElement('h4');
-                titleH4.className = "font-bold text-gray-200 group-hover:text-gold-400 truncate w-full";
-                titleH4.textContent = item.dishName;
-
-                const dateP = document.createElement('p');
-                dateP.className = "text-xs text-gray-500 mt-1";
-                dateP.textContent = new Date(item.createdAt).toLocaleDateString();
-
-                div.appendChild(titleH4);
-                div.appendChild(dateP);
+                div.className = "bg-dark-800 p-4 rounded-xl border border-gray-700 hover:border-gold-500 cursor-pointer mb-2 active:bg-dark-700";
+                div.onclick = () => { showRecipe(item); if(window.innerWidth < 768) toggleSidebar(); };
+                div.innerHTML = `<h4 class="font-bold text-gray-200 truncate text-lg">${item.dishName}</h4><p class="text-xs text-gray-500">${new Date(item.createdAt).toLocaleDateString()}</p>`;
                 listEl.appendChild(div);
             });
         }
@@ -321,16 +385,13 @@
             if (sidebar.classList.contains('-translate-x-full')) sidebar.classList.remove('-translate-x-full');
             else sidebar.classList.add('-translate-x-full');
         }
-        
+
         function copyRecipe() {
              const content = document.getElementById('recipeContent').innerText;
-             navigator.clipboard.writeText(content).then(() => alert("Recipe copied!"));
+             navigator.clipboard.writeText(content).then(() => alert("Copied!"));
         }
 
-        document.getElementById('dishInput').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') getRecipe();
-        });
-
+        document.getElementById('dishInput').addEventListener('keypress', function (e) { if (e.key === 'Enter') getRecipe(); });
         checkSession();
     </script>
 </body>
